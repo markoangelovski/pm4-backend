@@ -54,7 +54,7 @@ jobs:
         run: zip release.zip node_modules package.json dist -r
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pm4-api-build
           path: release.zip
