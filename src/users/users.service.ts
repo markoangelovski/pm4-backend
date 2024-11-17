@@ -1,24 +1,24 @@
-import { Injectable } from '@nestjs/common';
-
-// This should be a real class/interface representing a user entity
-export type User = any;
+import { Inject, Injectable } from '@nestjs/common';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { DATABASE_CONNECTION } from '../database/database-connection';
+import * as schema from './schema';
 
 @Injectable()
 export class UsersService {
-  private readonly users = [
-    {
-      userId: 1,
-      username: 'john',
-      password: 'changeme',
-    },
-    {
-      userId: 2,
-      username: 'maria',
-      password: 'guess',
-    },
-  ];
+  constructor(
+    @Inject(DATABASE_CONNECTION)
+    private readonly database: NodePgDatabase<typeof schema>,
+  ) {}
 
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find((user) => user.username === username);
+  async getUsers() {
+    return this.database.query.users.findMany();
   }
+
+  async createUser(user: typeof schema.users.$inferInsert) {
+    await this.database.insert(schema.users).values(user);
+  }
+
+  // async findOne(username: string): Promise<User | undefined> {
+  //   return this.users.find((user) => user.username === username);
+  // }
 }
