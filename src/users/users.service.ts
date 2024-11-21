@@ -1,24 +1,42 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  HttpException,
+  HttpStatus,
+  forwardRef,
+} from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import * as schema from './schema';
+import { eq } from 'drizzle-orm';
+import * as bcrypt from 'bcrypt';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject(DATABASE_CONNECTION)
     private readonly database: NodePgDatabase<typeof schema>,
+    @Inject(forwardRef(() => AuthService)) private authService: AuthService,
   ) {}
 
   async getUsers() {
-    return this.database.query.users.findMany();
+    return this.database.query.User.findMany();
   }
 
-  async createUser(user: typeof schema.users.$inferInsert) {
-    await this.database.insert(schema.users).values(user);
+  async findOne(username: string) {
+    return this.database.query.User.findFirst({
+      where: eq(schema.User.username, username),
+    });
   }
 
-  // async findOne(username: string): Promise<User | undefined> {
-  //   return this.users.find((user) => user.username === username);
-  // }
+  async createUser(user: typeof schema.User.$inferInsert) {
+    const userToInsert = await this.authService.register(user);
+
+    return this.database.insert(schema.User).values(userToInsert).returning({
+      id: schema.User.id,
+      email: schema.User.email,
+      username: schema.User.username,
+    });
+  }
 }

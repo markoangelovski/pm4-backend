@@ -30,7 +30,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
       statusCode: status,
       message,
       hasErrors: true,
-      data,
+      data: Array.isArray(data) ? data : [data],
     };
 
     response.status(status).json(errorResponse);
