@@ -3,7 +3,8 @@ import { DATABASE_CONNECTION } from './database-connection';
 import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import * as userSchema from 'src/users/schema';
+import * as userSchema from '../users/schema';
+import * as projectSchema from '../projects/schema';
 
 @Module({
   providers: [
@@ -16,6 +17,7 @@ import * as userSchema from 'src/users/schema';
         return drizzle(pool, {
           schema: {
             ...userSchema,
+            ...projectSchema,
           },
         });
       },

@@ -9,6 +9,7 @@ import {
   BadRequestException,
   Delete,
   NotFoundException,
+  Patch,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProjectsService } from './projects.service';
@@ -22,7 +23,7 @@ export class ProjectsController {
 
   @Get()
   async getProjects(@Request() req) {
-    return this.projectsService.getProjects(req.user.id);
+    return this.projectsService.getProjects(req.user.userId);
   }
 
   @Get(':projectId')
@@ -41,12 +42,29 @@ export class ProjectsController {
     }
     return this.projectsService.createProject({
       ...createProjectDto,
-      userId: req.user.id,
+      userId: req.user.userId,
     });
+  }
+
+  @Patch(':projectId')
+  async editProject(
+    @Request() req,
+    @Param('projectId') projectId: string,
+    @Body() updateProjectDto: CreateProjectDto,
+  ) {
+    const errors = await validate(updateProjectDto);
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+    return this.projectsService.editProject(
+      projectId,
+      req.user.userId,
+      updateProjectDto,
+    );
   }
 
   @Delete(':projectId')
   async deleteProject(@Request() req, @Param('projectId') projectId: string) {
-    return this.projectsService.deleteProject(projectId, req.user.id);
+    return this.projectsService.deleteProject(projectId, req.user.userId);
   }
 }

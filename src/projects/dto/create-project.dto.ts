@@ -7,9 +7,13 @@ export class CreateProjectDto {
 
   @IsNotEmpty()
   @IsString()
-  name: string;
+  title: string;
 
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  pl?: string;
 }

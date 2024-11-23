@@ -2,7 +2,6 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import * as schema from './schema';
-import { CreateProjectDto } from './dto/create-project.dto';
 import { and, eq } from 'drizzle-orm';
 
 @Injectable()
@@ -29,6 +28,23 @@ export class ProjectsService {
 
   async createProject(projectData: typeof schema.Project.$inferInsert) {
     return this.database.insert(schema.Project).values(projectData).returning();
+  }
+
+  async editProject(
+    projectId: string,
+    userId: string,
+    projectData: typeof schema.Project.$inferInsert,
+  ) {
+    return this.database
+      .update(schema.Project)
+      .set(projectData)
+      .where(
+        and(
+          eq(schema.Project.id, projectId),
+          eq(schema.Project.userId, userId),
+        ),
+      )
+      .returning();
   }
 
   async deleteProject(projectId: string, userId: string) {
