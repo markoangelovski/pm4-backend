@@ -4,7 +4,11 @@ import { CustomExceptionFilter } from './common/filters/error-response/error-res
 import { ResponseInterceptor } from './common/interceptors/transform/transform.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    cors: {
+      origin: process.env.CORS_ORIGIN,
+    },
+  });
 
   // Apply custom exception filter globally
   app.useGlobalFilters(new CustomExceptionFilter());
