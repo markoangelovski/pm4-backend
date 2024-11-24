@@ -1,8 +1,7 @@
 import { pgTable, uuid, timestamp, text } from 'drizzle-orm/pg-core';
-import { desc, relations } from 'drizzle-orm';
+import { relations } from 'drizzle-orm';
 import { User } from '../users/schema';
-import { title } from 'process';
-import { platform } from 'os';
+import { Task } from '../tasks/schema';
 
 export const Project = pgTable('projects', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -20,5 +19,5 @@ export const Project = pgTable('projects', {
 
 export const projectRelations = relations(Project, ({ one, many }) => ({
   user: one(User, { fields: [Project.userId], references: [User.id] }),
-  // tasks: many(Task),
+  tasks: many(Task),
 }));

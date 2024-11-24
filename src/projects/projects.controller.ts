@@ -28,7 +28,7 @@ export class ProjectsController {
 
   @Get(':projectId')
   async getProject(@Request() req, @Param('projectId') projectId: string) {
-    return this.projectsService.getProject(projectId, req.user.id);
+    return this.projectsService.getProject(projectId, req.user.userId);
   }
 
   @Post()
