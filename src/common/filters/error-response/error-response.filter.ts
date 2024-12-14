@@ -23,7 +23,11 @@ export class CustomExceptionFilter implements ExceptionFilter {
         : 'Internal server error';
 
     let data =
-      exception instanceof HttpException ? exception.getResponse() : null;
+      exception instanceof HttpException
+        ? exception.getResponse()
+        : process.env.NODE_ENV === 'production'
+          ? null
+          : exception;
 
     // Consistent error response structure
     const errorResponse = {
@@ -33,7 +37,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
       data: Array.isArray(data) ? data : [data],
     };
 
-    console.error('Error ocurred: ', message);
+    console.error('Error ocurred: ', exception);
 
     response.status(status).json(errorResponse);
   }
