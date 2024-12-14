@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsUUID, IsDate, IsEnum, ValidateIf } from 'class-validator';
 
 export class CreateTaskDto {
   @IsNotEmpty()
@@ -20,4 +20,10 @@ export class CreateTaskDto {
 
   @IsOptional()
   jiraLink?: string;
+
+  @IsDate()
+  dueDate: Date;
+
+  @IsEnum(['upcoming', 'in-progress', 'completed'])
+  status: 'upcoming' | 'in-progress' | 'completed';
 }

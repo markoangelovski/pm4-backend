@@ -1,4 +1,4 @@
-import { pgTable, uuid, timestamp, text } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, timestamp, text, integer } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { User } from '../users/schema';
 import { Task } from '../tasks/schema';
@@ -11,6 +11,9 @@ export const Project = pgTable('projects', {
   title: text('title').notNull(),
   description: text('description'),
   pl: text('pl'),
+  upcomingTasks: integer('upcoming_tasks').default(0),
+  inProgressTasks: integer('in_progress_tasks').default(0),
+  doneTasks: integer('done_tasks').default(0),
   createdAt: timestamp('created_at').defaultNow(),
   modifiedAt: timestamp('modified_at')
     .defaultNow()

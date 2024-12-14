@@ -9,6 +9,8 @@ import {
   BadRequestException,
   Param,
   Patch,
+  HttpException,
+  HttpStatus,
   Delete,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -37,20 +39,15 @@ export class TasksController {
 
   @Post()
   async createTask(@Request() req, @Body() createTaskDto: CreateTaskDto) {
-    try {
-      const errors = await validate(createTaskDto);
+    const errors = await validate(createTaskDto);
 
-      if (errors.length > 0) {
-        throw new BadRequestException(errors);
-      }
-      return this.tasksService.createTask({
-        ...createTaskDto,
-        userId: req.user.userId,
-      });
-    } catch (error) {
-      console.log('error: ', error);
-      throw new BadRequestException(error);
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
     }
+    return this.tasksService.createTask({
+      ...createTaskDto,
+      userId: req.user.userId,
+    });
   }
 
   @Patch(':taskId')

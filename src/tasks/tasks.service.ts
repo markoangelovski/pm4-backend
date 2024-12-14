@@ -1,8 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import * as schema from './schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 
 @Injectable()
 export class TasksService {
@@ -32,7 +32,10 @@ export class TasksService {
   }
 
   async createTask(taskData: typeof schema.Task.$inferInsert) {
-    return this.database.insert(schema.Task).values(taskData).returning();
+    return this.database
+      .insert(schema.Task)
+      .values({ ...taskData, dueDate: new Date(taskData.dueDate) })
+      .returning();
   }
 
   async updateTask(
@@ -42,7 +45,7 @@ export class TasksService {
   ) {
     return this.database
       .update(schema.Task)
-      .set(updateTaskDto)
+      .set({ ...updateTaskDto, dueDate: new Date(updateTaskDto.dueDate) })
       .where(and(eq(schema.Task.id, taskId), eq(schema.Task.userId, userId)))
       .returning();
   }
@@ -54,3 +57,29 @@ export class TasksService {
       .returning();
   }
 }
+
+// async function getTaskStatusCounts(projectId: string) {
+//   const upcomingTasksCount = await this.database.query.Task.count({
+//     where: and(
+//       eq(schema.Task.projectId, projectId),
+//       eq(schema.Task.status, 'upcoming'),
+//     ),
+//     columns: { count: schema.Task.id },
+//   });
+//   const inProgressTasksCount = await this.database.query.Task.count({
+//     where: and(
+//       eq(schema.Task.projectId, projectId),
+//       eq(schema.Task.status, 'in-progress'),
+//     ),
+//     columns: { count: schema.Task.id },
+//   });
+//   const completedTasksCount = await this.database.query.Task.count({
+//     where: and(
+//       eq(schema.Task.projectId, projectId),
+//       eq(schema.Task.status, 'completed'),
+//     ),
+//     columns: { count: schema.Task.id },
+//   });
+
+//   return { upcomingTasksCount, inProgressTasksCount, completedTasksCount };
+// }

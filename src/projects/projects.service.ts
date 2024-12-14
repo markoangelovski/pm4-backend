@@ -48,14 +48,37 @@ export class ProjectsService {
   }
 
   async deleteProject(projectId: string, userId: string) {
-    return this.database
-      .delete(schema.Project)
-      .where(
-        and(
-          eq(schema.Project.id, projectId),
-          eq(schema.Project.userId, userId),
-        ),
-      )
-      .returning();
+    try {
+      const deletedProject = await this.database
+        .delete(schema.Project)
+        .where(
+          and(
+            eq(schema.Project.id, projectId),
+            eq(schema.Project.userId, userId),
+          ),
+        )
+        .returning();
+      console.log('deletedProject: ', deletedProject);
+      return deletedProject;
+    } catch (error) {
+      console.log('Del proj err: ', error);
+    }
+
+    // return this.database
+    //   .delete(schema.Project)
+    //   .where(
+    //     and(
+    //       eq(schema.Project.id, projectId),
+    //       eq(schema.Project.userId, userId),
+    //     ),
+    //   )
+    //   .returning();
   }
+
+  // async updateProjectTasksCounts(projectId: string) {
+
+  //   const { upcomingTasksCount, inProgressTasksCount, completedTasksCount } = await getTaskStatusCounts(projectId);
+
+  //   return this.database.update(schema.Project).set({ upcomingTasksCount, inProgressTasksCount, completedTasksCount }).where(eq(schema.Project.id, projectId)).returning();
+  // }
 }

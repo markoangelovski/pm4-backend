@@ -10,12 +10,13 @@ export const Task = pgTable('tasks', {
     .references(() => User.id),
   projectId: uuid('project_id')
     .notNull()
-    .references(() => Project.id),
+    .references(() => Project.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   description: text('description'),
   pl: text('pl'),
   jiraLink: text('jira_link'),
-  status: text('status').notNull().default('pending'),
+  status: text('status').notNull().default('upcoming'),
+  dueDate: timestamp('due_date').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
   modifiedAt: timestamp('modified_at')
     .defaultNow()
