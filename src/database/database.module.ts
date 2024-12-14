@@ -6,6 +6,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import * as userSchema from '../users/schema';
 import * as projectSchema from '../projects/schema';
 import * as taskSchema from '../tasks/schema';
+import * as eventSchema from '../events/schema';
 
 @Module({
   providers: [
@@ -20,6 +21,7 @@ import * as taskSchema from '../tasks/schema';
             ...userSchema,
             ...projectSchema,
             ...taskSchema,
+            ...eventSchema,
           },
         });
       },
