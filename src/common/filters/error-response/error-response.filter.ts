@@ -33,6 +33,8 @@ export class CustomExceptionFilter implements ExceptionFilter {
       data: Array.isArray(data) ? data : [data],
     };
 
+    console.error('Error ocurred: ', message);
+
     response.status(status).json(errorResponse);
   }
 }

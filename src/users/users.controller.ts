@@ -25,8 +25,8 @@ export class UsersController {
   }
 
   @Post('register')
-  async createUser(@Body() request: CreateUserRequest) {
-    return this.usersService.createUser(request);
+  async createUser(@Body() userPayload: CreateUserRequest) {
+    return this.usersService.createUser(userPayload);
   }
 
   @UseGuards(LocalAuthGuard)
