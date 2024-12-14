@@ -12,7 +12,7 @@ export class CreateEventDto {
   userId: string;
   @IsNotEmpty()
   title: string;
-  @IsNotEmpty()
+  // @IsNotEmpty()
   @IsDateString()
   day: string;
   // @IsNotEmpty()

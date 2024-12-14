@@ -4,6 +4,7 @@ import { DATABASE_CONNECTION } from '../database/database-connection';
 import { eq, and } from 'drizzle-orm';
 import { CreateEventDto } from './dto/create-event.dto';
 import * as schema from './schema';
+import { format } from 'date-fns';
 
 @Injectable()
 export class EventsService {
@@ -11,21 +12,37 @@ export class EventsService {
     @Inject(DATABASE_CONNECTION)
     private readonly database: NodePgDatabase<typeof import('./schema')>,
   ) {}
-  async getEvents() {
-    const events = await this.database.query.PmEvent.findMany({
+  async getEvents(userId: string, day?: string, taskId?: string) {
+    const whereClause = [eq(schema.PmEvent.userId, userId)];
+
+    if (taskId) {
+      whereClause.push(eq(schema.PmEvent.taskId, taskId));
+    } else {
+      day = day || format(new Date(), 'yyyy-MM-dd');
+      whereClause.push(eq(schema.PmEvent.day, day));
+    }
+
+    return this.database.query.PmEvent.findMany({
+      where: and(...whereClause),
+      columns: {
+        userId: false,
+        taskId: false,
+      },
       with: {
-        logs: true,
+        logs: {
+          columns: {
+            userId: false,
+            eventId: false,
+          },
+        },
+        task: {
+          columns: {
+            id: true,
+            title: true,
+          },
+        },
       },
     });
-    return events.map((event) => ({
-      ...event,
-      userId: undefined,
-      logs: event.logs.map((log) => ({
-        ...log,
-        userId: undefined,
-        eventId: undefined,
-      })),
-    }));
   }
 
   async createEvent(createEventDto: CreateEventDto) {
@@ -33,7 +50,7 @@ export class EventsService {
       .insert(schema.PmEvent)
       .values({
         title: createEventDto.title,
-        day: createEventDto.day,
+        day: createEventDto.day || format(new Date(), 'yyyy-MM-dd'),
         taskId: createEventDto.taskId,
         userId: createEventDto.userId,
       })

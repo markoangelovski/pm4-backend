@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { EventsService } from './events.service';
@@ -21,8 +22,12 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Get()
-  async getEvents() {
-    return this.eventsService.getEvents();
+  async getEvents(
+    @Request() req,
+    @Query('day') day?: string,
+    @Query('taskId') taskId?: string,
+  ) {
+    return this.eventsService.getEvents(req.user.userId, day, taskId);
   }
 
   @Post()
