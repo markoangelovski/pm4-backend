@@ -1,4 +1,10 @@
-import { Injectable, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  HttpException,
+  HttpStatus,
+  NotFoundException,
+} from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import { eq, and } from 'drizzle-orm';
@@ -7,12 +13,14 @@ import * as schema from './schema';
 import { format } from 'date-fns';
 import { UpdateLogDto } from './dto/update-log.dto';
 import { CreateLogDto } from './dto/create-log.dto';
+import { TasksService } from '../tasks/tasks.service';
 
 @Injectable()
 export class EventsService {
   constructor(
     @Inject(DATABASE_CONNECTION)
     private readonly database: NodePgDatabase<typeof import('./schema')>,
+    private readonly tasksService: TasksService,
   ) {}
   async getEvents(userId: string, day?: string, taskId?: string) {
     const whereClause = [eq(schema.PmEvent.userId, userId)];
@@ -48,6 +56,18 @@ export class EventsService {
   }
 
   async createEvent(createEventDto: CreateEventDto) {
+    let task = null;
+
+    if (createEventDto.taskId) {
+      task = await this.tasksService.getTask(
+        createEventDto.taskId,
+        createEventDto.userId,
+      );
+      if (!task) {
+        throw new NotFoundException('Task not found');
+      }
+    }
+
     const event = await this.database
       .insert(schema.PmEvent)
       .values({
@@ -57,13 +77,17 @@ export class EventsService {
         userId: createEventDto.userId,
       })
       .returning();
-    await this.database.insert(schema.Log).values({
-      title: createEventDto.logTitle,
-      duration: createEventDto.duration,
-      eventId: event[0].id,
-      userId: createEventDto.userId,
-    });
-    return event;
+    const log = await this.database
+      .insert(schema.Log)
+      .values({
+        title: createEventDto.logTitle || createEventDto.title,
+        duration: createEventDto.duration,
+        eventId: event[0].id,
+        userId: createEventDto.userId,
+      })
+      .returning();
+
+    return { ...event[0], logs: log, task };
   }
 
   async updateEvent(

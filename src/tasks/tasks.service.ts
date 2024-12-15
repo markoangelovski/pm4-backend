@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import * as schema from './schema';
-import { and, eq, or } from 'drizzle-orm';
+import { and, eq, or, ilike } from 'drizzle-orm';
 
 @Injectable()
 export class TasksService {
@@ -56,6 +56,23 @@ export class TasksService {
       .where(and(eq(schema.Task.id, taskId), eq(schema.Task.userId, userId)))
       .returning();
   }
+
+  async searchTask(q: string, userId: string) {
+    return this.database.query.Task.findMany({
+      where: and(
+        eq(schema.Task.userId, userId),
+        or(
+          ilike(schema.Task.title, `%${q}%`),
+          ilike(schema.Task.description, `%${q}%`),
+          ilike(schema.Task.pl, `%${q}%`),
+        ),
+      ),
+      columns: {
+        id: true,
+        title: true,
+      },
+    });
+  }
 }
 
 // async function getTaskStatusCounts(projectId: string) {
@@ -80,6 +97,6 @@ export class TasksService {
 //     ),
 //     columns: { count: schema.Task.id },
 //   });
-
+//
 //   return { upcomingTasksCount, inProgressTasksCount, completedTasksCount };
 // }

@@ -18,12 +18,12 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { TasksService } from './tasks.service';
 import { validate } from 'class-validator';
 
-@Controller('tasks')
+@Controller('/tasks')
 @UseGuards(JwtAuthGuard)
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
-  @Get()
+  @Get('/')
   async getTasks(
     @Request() req,
     @Query('projectId') projectId?: string,
@@ -32,12 +32,17 @@ export class TasksController {
     return this.tasksService.getTasks(req.user.userId, projectId, status);
   }
 
-  @Get(':taskId')
+  @Get('/search')
+  async searchTask(@Request() req, @Query('q') q: string) {
+    return this.tasksService.searchTask(q, req.user.userId);
+  }
+
+  @Get('/:taskId')
   async getTask(@Request() req, @Param('taskId') taskId: string) {
     return this.tasksService.getTask(taskId, req.user.userId);
   }
 
-  @Post()
+  @Post('/')
   async createTask(@Request() req, @Body() createTaskDto: CreateTaskDto) {
     const errors = await validate(createTaskDto);
 
@@ -50,7 +55,7 @@ export class TasksController {
     });
   }
 
-  @Patch(':taskId')
+  @Patch('/:taskId')
   async updateTask(
     @Request() req,
     @Param('taskId') taskId: string,
@@ -63,7 +68,7 @@ export class TasksController {
     return this.tasksService.updateTask(taskId, req.user.userId, updateTaskDto);
   }
 
-  @Delete(':taskId')
+  @Delete('/:taskId')
   async deleteTask(@Request() req, @Param('taskId') taskId: string) {
     return this.tasksService.deleteTask(taskId, req.user.userId);
   }
