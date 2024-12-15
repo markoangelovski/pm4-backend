@@ -5,6 +5,8 @@ import { eq, and } from 'drizzle-orm';
 import { CreateEventDto } from './dto/create-event.dto';
 import * as schema from './schema';
 import { format } from 'date-fns';
+import { UpdateLogDto } from './dto/update-log.dto';
+import { CreateLogDto } from './dto/create-log.dto';
 
 @Injectable()
 export class EventsService {
@@ -88,6 +90,36 @@ export class EventsService {
       .where(
         and(eq(schema.PmEvent.id, eventId), eq(schema.PmEvent.userId, userId)),
       )
+      .returning();
+  }
+
+  async createLog(createLogDto: CreateLogDto) {
+    return this.database
+      .insert(schema.Log)
+      .values({
+        title: createLogDto.title,
+        duration: createLogDto.duration,
+        eventId: createLogDto.eventId,
+        userId: createLogDto.userId,
+      })
+      .returning();
+  }
+
+  async updateLog(logId: string, userId: string, updateLogDto: UpdateLogDto) {
+    return this.database
+      .update(schema.Log)
+      .set({
+        title: updateLogDto.title,
+        duration: updateLogDto.duration,
+      })
+      .where(and(eq(schema.Log.id, logId), eq(schema.Log.userId, userId)))
+      .returning();
+  }
+
+  async deleteLog(logId: string, userId: string) {
+    return this.database
+      .delete(schema.Log)
+      .where(and(eq(schema.Log.id, logId), eq(schema.Log.userId, userId)))
       .returning();
   }
 }
