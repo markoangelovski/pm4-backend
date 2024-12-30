@@ -2,7 +2,8 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import * as schema from './schema';
-import { and, eq, or, ilike } from 'drizzle-orm';
+import { and, eq, or, ilike, count } from 'drizzle-orm';
+import { UpdateTaskDto } from './dto/task.dto';
 
 @Injectable()
 export class TasksService {
@@ -11,7 +12,12 @@ export class TasksService {
     private readonly database: NodePgDatabase<typeof import('./schema')>,
   ) {}
 
-  async getTasks(userId: string, projectId?: string, status?: string) {
+  async countTasks(
+    userId: string,
+    projectId?: string,
+    status?: string,
+    q?: string,
+  ) {
     const whereClause = [eq(schema.Task.userId, userId)];
 
     if (projectId) {
@@ -20,32 +26,77 @@ export class TasksService {
     if (status) {
       whereClause.push(eq(schema.Task.status, status));
     }
+    if (q) {
+      whereClause.push(
+        or(
+          ilike(schema.Task.title, `%${q}%`),
+          ilike(schema.Task.description, `%${q}%`),
+          ilike(schema.Task.pl, `%${q}%`),
+        ),
+      );
+    }
+    return this.database
+      .select({ count: count(schema.Task.id) })
+      .from(schema.Task)
+      .where(and(...whereClause));
+  }
+
+  async getTasks(
+    userId: string,
+    limit: number,
+    offset: number,
+    projectId?: string,
+    status?: string,
+    q?: string,
+  ) {
+    const whereClause = [eq(schema.Task.userId, userId)];
+
+    if (projectId) {
+      whereClause.push(eq(schema.Task.projectId, projectId));
+    }
+    if (status) {
+      whereClause.push(eq(schema.Task.status, status));
+    }
+    if (q) {
+      whereClause.push(
+        or(
+          ilike(schema.Task.title, `%${q}%`),
+          ilike(schema.Task.description, `%${q}%`),
+          ilike(schema.Task.pl, `%${q}%`),
+        ),
+      );
+    }
     return this.database.query.Task.findMany({
       where: and(...whereClause),
+      limit,
+      offset,
+      columns: {
+        userId: false,
+      },
     });
   }
 
   async getTask(taskId: string, userId: string) {
     return this.database.query.Task.findFirst({
       where: and(eq(schema.Task.id, taskId), eq(schema.Task.userId, userId)),
+      columns: {
+        userId: false,
+      },
     });
   }
 
   async createTask(taskData: typeof schema.Task.$inferInsert) {
-    return this.database
-      .insert(schema.Task)
-      .values({ ...taskData, dueDate: new Date(taskData.dueDate) })
-      .returning();
+    return this.database.insert(schema.Task).values(taskData).returning();
   }
 
   async updateTask(
-    taskId: string,
     userId: string,
-    updateTaskDto: typeof schema.Task.$inferInsert,
+    taskId: string,
+    updateTaskDto: UpdateTaskDto,
   ) {
     return this.database
       .update(schema.Task)
-      .set({ ...updateTaskDto, dueDate: new Date(updateTaskDto.dueDate) })
+      .set(updateTaskDto)
       .where(and(eq(schema.Task.id, taskId), eq(schema.Task.userId, userId)))
       .returning();
   }
@@ -55,23 +106,6 @@ export class TasksService {
       .delete(schema.Task)
       .where(and(eq(schema.Task.id, taskId), eq(schema.Task.userId, userId)))
       .returning();
-  }
-
-  async searchTask(q: string, userId: string) {
-    return this.database.query.Task.findMany({
-      where: and(
-        eq(schema.Task.userId, userId),
-        or(
-          ilike(schema.Task.title, `%${q}%`),
-          ilike(schema.Task.description, `%${q}%`),
-          ilike(schema.Task.pl, `%${q}%`),
-        ),
-      ),
-      columns: {
-        id: true,
-        title: true,
-      },
-    });
   }
 }
 

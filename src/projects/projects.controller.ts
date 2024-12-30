@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProjectsService } from './projects.service';
-import { CreateProjectDto } from './dto/create-project.dto';
+import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 import { validate } from 'class-validator';
 import { ParseLimitOffsetPipe } from 'src/common/pipes/parse-limit-offset';
 
@@ -72,13 +72,14 @@ export class ProjectsController {
   async editProject(
     @Request() req,
     @Param('projectId', ParseUUIDPipe) projectId: string,
-    @Body() updateProjectDto: CreateProjectDto,
+    @Body() updateProjectDto: UpdateProjectDto,
   ) {
     return {
-      results: await this.projectsService.editProject(projectId, {
-        userId: req.user.userId,
-        ...updateProjectDto,
-      }),
+      results: await this.projectsService.editProject(
+        req.user.userId,
+        projectId,
+        updateProjectDto,
+      ),
     };
   }
 

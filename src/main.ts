@@ -11,7 +11,7 @@ async function bootstrap() {
     },
   });
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
   // Apply custom exception filter globally
   app.useGlobalFilters(new CustomExceptionFilter());

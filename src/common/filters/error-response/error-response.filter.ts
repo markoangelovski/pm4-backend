@@ -35,6 +35,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
       hasErrors: true,
       errors: [
         {
+          message: exception.message,
           ...exception,
         },
       ],

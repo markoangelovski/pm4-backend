@@ -9,14 +9,13 @@ import {
   BadRequestException,
   Param,
   Patch,
-  HttpException,
-  HttpStatus,
   Delete,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { CreateTaskDto } from './dto/create-task.dto';
+import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
 import { TasksService } from './tasks.service';
-import { validate } from 'class-validator';
+import { ParseLimitOffsetPipe } from 'src/common/pipes/parse-limit-offset';
 
 @Controller('/tasks')
 @UseGuards(JwtAuthGuard)
@@ -26,50 +25,73 @@ export class TasksController {
   @Get('/')
   async getTasks(
     @Request() req,
-    @Query('projectId') projectId?: string,
+    @Query('limit', new ParseLimitOffsetPipe()) limit: number,
+    @Query('offset', new ParseLimitOffsetPipe()) offset: number,
+    @Query('projectId', new ParseUUIDPipe({ optional: true }))
+    projectId?: string,
     @Query('status') status?: string,
+    @Query('q') q?: string,
   ) {
-    return this.tasksService.getTasks(req.user.userId, projectId, status);
-  }
+    const [totalResults, tasks] = await Promise.all([
+      this.tasksService.countTasks(req.user.userId, projectId, status, q),
+      this.tasksService.getTasks(
+        req.user.userId,
+        limit,
+        offset,
+        projectId,
+        status,
+        q,
+      ),
+    ]);
 
-  @Get('/search')
-  async searchTask(@Request() req, @Query('q') q: string) {
-    return this.tasksService.searchTask(q, req.user.userId);
+    return {
+      limit,
+      offset,
+      totalResults: totalResults[0].count,
+      results: tasks,
+    };
   }
 
   @Get('/:taskId')
-  async getTask(@Request() req, @Param('taskId') taskId: string) {
-    return this.tasksService.getTask(taskId, req.user.userId);
+  async getTask(
+    @Request() req,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
+  ) {
+    return {
+      results: await this.tasksService.getTask(taskId, req.user.userId),
+    };
   }
 
   @Post('/')
   async createTask(@Request() req, @Body() createTaskDto: CreateTaskDto) {
-    const errors = await validate(createTaskDto);
-
-    if (errors.length > 0) {
-      throw new BadRequestException(errors);
-    }
-    return this.tasksService.createTask({
-      ...createTaskDto,
-      userId: req.user.userId,
-    });
+    console.log('createTaskDto: ', createTaskDto);
+    return {
+      results: await this.tasksService.createTask({
+        userId: req.user.userId,
+        ...createTaskDto,
+      }),
+    };
   }
 
   @Patch('/:taskId')
   async updateTask(
     @Request() req,
     @Param('taskId') taskId: string,
-    @Body() updateTaskDto: CreateTaskDto,
+    @Body() updateTaskDto: UpdateTaskDto,
   ) {
-    const errors = await validate(updateTaskDto);
-    if (errors.length > 0) {
-      throw new BadRequestException(errors);
-    }
-    return this.tasksService.updateTask(taskId, req.user.userId, updateTaskDto);
+    return {
+      results: await this.tasksService.updateTask(
+        req.user.userId,
+        taskId,
+        updateTaskDto,
+      ),
+    };
   }
 
   @Delete('/:taskId')
   async deleteTask(@Request() req, @Param('taskId') taskId: string) {
-    return this.tasksService.deleteTask(taskId, req.user.userId);
+    return {
+      results: await this.tasksService.deleteTask(taskId, req.user.userId),
+    };
   }
 }
