@@ -2,7 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import * as schema from './schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, count } from 'drizzle-orm';
 
 @Injectable()
 export class ProjectsService {
@@ -11,9 +11,21 @@ export class ProjectsService {
     private readonly database: NodePgDatabase<typeof schema>,
   ) {}
 
-  async getProjects(userId: string) {
+  async countProjects(userId: string) {
+    return this.database
+      .select({ count: count(schema.Project.id) })
+      .from(schema.Project)
+      .where(eq(schema.Project.userId, userId));
+  }
+
+  async getProjects(userId: string, limit: number, offset: number) {
     return this.database.query.Project.findMany({
       where: eq(schema.Project.userId, userId),
+      limit,
+      offset,
+      columns: {
+        userId: false,
+      },
     });
   }
 
@@ -23,6 +35,9 @@ export class ProjectsService {
         eq(schema.Project.id, projectId),
         eq(schema.Project.userId, userId),
       ),
+      columns: {
+        userId: false,
+      },
     });
   }
 
@@ -32,7 +47,6 @@ export class ProjectsService {
 
   async editProject(
     projectId: string,
-    userId: string,
     projectData: typeof schema.Project.$inferInsert,
   ) {
     return this.database
@@ -41,38 +55,22 @@ export class ProjectsService {
       .where(
         and(
           eq(schema.Project.id, projectId),
-          eq(schema.Project.userId, userId),
+          eq(schema.Project.userId, projectData.userId),
         ),
       )
       .returning();
   }
 
   async deleteProject(projectId: string, userId: string) {
-    try {
-      const deletedProject = await this.database
-        .delete(schema.Project)
-        .where(
-          and(
-            eq(schema.Project.id, projectId),
-            eq(schema.Project.userId, userId),
-          ),
-        )
-        .returning();
-      console.log('deletedProject: ', deletedProject);
-      return deletedProject;
-    } catch (error) {
-      console.log('Del proj err: ', error);
-    }
-
-    // return this.database
-    //   .delete(schema.Project)
-    //   .where(
-    //     and(
-    //       eq(schema.Project.id, projectId),
-    //       eq(schema.Project.userId, userId),
-    //     ),
-    //   )
-    //   .returning();
+    return this.database
+      .delete(schema.Project)
+      .where(
+        and(
+          eq(schema.Project.id, projectId),
+          eq(schema.Project.userId, userId),
+        ),
+      )
+      .returning();
   }
 
   // async updateProjectTasksCounts(projectId: string) {

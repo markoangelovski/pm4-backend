@@ -19,25 +19,26 @@ export class UsersController {
     private authService: AuthService,
   ) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   async getUsers() {
-    return this.usersService.getUsers();
+    return { results: await this.usersService.getUsers() };
   }
 
   @Post('register')
   async createUser(@Body() userPayload: CreateUserRequest) {
-    return this.usersService.createUser(userPayload);
+    return { results: await this.usersService.createUser(userPayload) };
   }
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req) {
-    return this.authService.login(req.user);
+    return { results: await this.authService.login(req.user) };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
-    return req.user;
+    return { results: req.user };
   }
 }

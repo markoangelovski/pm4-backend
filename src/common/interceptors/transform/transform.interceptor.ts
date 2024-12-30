@@ -7,10 +7,12 @@ import {
 import { map, Observable } from 'rxjs';
 
 interface Response<T> {
-  statusCode: number;
-  message: string;
+  limit: number;
+  offset: number;
+  totalResults: number;
+  results: T[];
   hasErrors: boolean;
-  data: T[];
+  errors: any[];
 }
 
 @Injectable()
@@ -21,11 +23,26 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
   ): Observable<Response<T>> {
     return next.handle().pipe(
       map((data) => {
+        if (!data.results) data = { ...data, results: [] };
+        const results = Array.isArray(data.results)
+          ? data.results
+          : [data.results];
+
+        console.log(
+          new Date(),
+          context.getArgByIndex(0).method,
+          context.getArgByIndex(0).url,
+          '\n',
+          process.env.NODE_ENV !== 'production' ? data : '',
+        );
+
         return {
-          statusCode: context.switchToHttp().getResponse().statusCode,
-          message: 'ok',
+          limit: data.limit || 1,
+          offset: data.offset || 0,
+          totalResults: data.totalResults || results.length,
+          results,
           hasErrors: false,
-          data: Array.isArray(data) ? data : [data],
+          errors: [],
         };
       }),
     );

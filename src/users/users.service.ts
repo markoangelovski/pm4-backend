@@ -14,7 +14,11 @@ export class UsersService {
   ) {}
 
   async getUsers() {
-    return this.database.query.User.findMany();
+    return this.database.query.User.findMany({
+      columns: {
+        password: false,
+      },
+    });
   }
 
   async findOne(username: string) {
