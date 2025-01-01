@@ -17,8 +17,10 @@ import { ProjectsService } from './projects.service';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 import { validate } from 'class-validator';
 import { ParseLimitOffsetPipe } from 'src/common/pipes/parse-limit-offset';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('/projects')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}

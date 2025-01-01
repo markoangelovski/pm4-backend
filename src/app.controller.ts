@@ -8,11 +8,11 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private authService: AuthService,
+    // private authService: AuthService,
   ) {}
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  getHello() {
+    return { results: this.appService.getHello() };
   }
 }
