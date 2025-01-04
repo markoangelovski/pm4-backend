@@ -30,16 +30,18 @@ export class TasksController {
     @Query('projectId', new ParseUUIDPipe({ optional: true }))
     projectId?: string,
     @Query('status') status?: string,
+    @Query('pl') pl?: string,
     @Query('q') q?: string,
   ) {
     const [totalResults, tasks] = await Promise.all([
-      this.tasksService.countTasks(req.user.userId, projectId, status, q),
+      this.tasksService.countTasks(req.user.userId, projectId, status, pl, q),
       this.tasksService.getTasks(
         req.user.userId,
         limit,
         offset,
         projectId,
         status,
+        pl,
         q,
       ),
     ]);
@@ -64,7 +66,6 @@ export class TasksController {
 
   @Post('/')
   async createTask(@Request() req, @Body() createTaskDto: CreateTaskDto) {
-    console.log('createTaskDto: ', createTaskDto);
     return {
       results: await this.tasksService.createTask({
         userId: req.user.userId,

@@ -16,6 +16,7 @@ export class TasksService {
     userId: string,
     projectId?: string,
     status?: string,
+    pl?: string,
     q?: string,
   ) {
     const whereClause = [eq(schema.Task.userId, userId)];
@@ -25,6 +26,9 @@ export class TasksService {
     }
     if (status) {
       whereClause.push(eq(schema.Task.status, status));
+    }
+    if (pl) {
+      whereClause.push(eq(schema.Task.pl, pl));
     }
     if (q) {
       whereClause.push(
@@ -47,6 +51,7 @@ export class TasksService {
     offset: number,
     projectId?: string,
     status?: string,
+    pl?: string,
     q?: string,
   ) {
     const whereClause = [eq(schema.Task.userId, userId)];
@@ -56,6 +61,9 @@ export class TasksService {
     }
     if (status) {
       whereClause.push(eq(schema.Task.status, status));
+    }
+    if (pl) {
+      whereClause.push(eq(schema.Task.pl, pl));
     }
     if (q) {
       whereClause.push(
@@ -81,6 +89,13 @@ export class TasksService {
       where: and(eq(schema.Task.id, taskId), eq(schema.Task.userId, userId)),
       columns: {
         userId: false,
+      },
+      with: {
+        project: {
+          columns: {
+            title: true,
+          },
+        },
       },
     });
   }

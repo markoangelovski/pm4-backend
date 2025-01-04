@@ -8,7 +8,7 @@ export const PmEvent = pgTable('events', {
   userId: uuid('user_id')
     .notNull()
     .references(() => User.id),
-  taskId: uuid('task_id').references(() => Task.id),
+  taskId: uuid('task_id').references(() => Task.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   day: text('day').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
