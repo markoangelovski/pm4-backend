@@ -28,7 +28,6 @@ export class EventsService {
     if (taskId) {
       whereClause.push(eq(schema.PmEvent.taskId, taskId));
     } else {
-      day = day || format(new Date(), 'yyyy-MM-dd');
       whereClause.push(eq(schema.PmEvent.day, day));
     }
 

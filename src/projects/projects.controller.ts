@@ -6,7 +6,6 @@ import {
   UseGuards,
   Get,
   Param,
-  BadRequestException,
   Delete,
   Patch,
   Query,
@@ -16,7 +15,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 import { validate } from 'class-validator';
-import { ParseLimitOffsetPipe } from 'src/common/pipes/parse-limit-offset';
+import { ParseLimitOffsetPipe } from 'src/common/pipes';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('/projects')

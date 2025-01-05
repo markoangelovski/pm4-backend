@@ -6,16 +6,13 @@ import {
   IsNumber,
 } from 'class-validator';
 
-export class CreateEventDto {
-  @IsNotEmpty()
-  @IsUUID()
-  userId: string;
+export class EventDto {
   @IsNotEmpty()
   title: string;
-  // @IsNotEmpty()
+  @IsOptional()
   @IsDateString()
   day: string;
-  // @IsNotEmpty()
+  @IsOptional()
   @IsUUID()
   taskId: string;
   @IsNotEmpty()
@@ -23,4 +20,10 @@ export class CreateEventDto {
   @IsNotEmpty()
   @IsNumber()
   duration: number;
+}
+
+export class CreateEventDto extends EventDto {
+  @IsNotEmpty()
+  @IsUUID()
+  userId: string;
 }

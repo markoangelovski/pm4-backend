@@ -15,7 +15,7 @@ import {
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
 import { TasksService } from './tasks.service';
-import { ParseLimitOffsetPipe } from 'src/common/pipes/parse-limit-offset';
+import { ParseLimitOffsetPipe } from 'src/common/pipes';
 
 @Controller('/tasks')
 @UseGuards(JwtAuthGuard)
