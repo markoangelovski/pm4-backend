@@ -1,8 +1,10 @@
+import { PartialType } from '@nestjs/mapped-types';
 import { IsNotEmpty, IsUUID, IsNumber } from 'class-validator';
 
 export class CreateLogDto {
   @IsNotEmpty()
-  @IsUUID()  eventId: string;
+  @IsUUID()
+  eventId: string;
 
   @IsNotEmpty()
   title: string;
@@ -10,8 +12,6 @@ export class CreateLogDto {
   @IsNotEmpty()
   @IsNumber()
   duration: number;
-  @IsNotEmpty()
-  @IsUUID()
-  userId: string;
 }
 
+export class UpdateLogDto extends PartialType(CreateLogDto) {}

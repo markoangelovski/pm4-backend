@@ -15,10 +15,9 @@ import {
 } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { EventsService } from './events.service';
-import { CreateEventDto, EventDto } from './dto/create-event.dto';
+import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { CreateLogDto } from './dto/create-log.dto';
-import { UpdateLogDto } from './dto/update-log.dto';
+import { CreateLogDto, UpdateLogDto } from './dto/log.dto';
 import { ParseDayFormatPipe } from 'src/common/pipes';
 
 @Controller('/events')
@@ -38,12 +37,12 @@ export class EventsController {
   }
 
   @Post('/')
-  async createEvent(@Request() req, @Body() createEventDto: EventDto) {
+  async createEvent(@Request() req, @Body() createEventDto: CreateEventDto) {
     return {
-      results: await this.eventsService.createEvent({
-        ...createEventDto,
-        userId: req.user.userId,
-      }),
+      results: await this.eventsService.createEvent(
+        req.user.userId,
+        createEventDto,
+      ),
     };
   }
 
@@ -51,17 +50,15 @@ export class EventsController {
   async updateEvent(
     @Request() req,
     @Param('eventId', ParseUUIDPipe) eventId: string,
-    @Body() updateEventDto: CreateEventDto,
+    @Body() updateEventDto: UpdateEventDto,
   ) {
-    const errors = await validate(updateEventDto);
-    if (errors.length > 0) {
-      throw new BadRequestException(errors);
-    }
-    return this.eventsService.updateEvent(
-      eventId,
-      req.user.userId,
-      updateEventDto,
-    );
+    return {
+      results: await this.eventsService.updateEvent(
+        req.user.userId,
+        eventId,
+        updateEventDto,
+      ),
+    };
   }
 
   @Delete('/:eventId')
@@ -76,14 +73,12 @@ export class EventsController {
 
   @Post('/logs')
   async createLog(@Request() req, @Body() createLogDto: CreateLogDto) {
-    const errors = await validate(createLogDto);
-    if (errors.length > 0) {
-      throw new BadRequestException(errors);
-    }
-    return this.eventsService.createLog({
-      ...createLogDto,
-      userId: req.user.userId,
-    });
+    return {
+      results: await this.eventsService.createLog(
+        req.user.userId,
+        createLogDto,
+      ),
+    };
   }
 
   @Patch('/logs/:logId')
@@ -92,11 +87,13 @@ export class EventsController {
     @Body() updateLogDto: UpdateLogDto,
     @Param('logId', ParseUUIDPipe) logId: string,
   ) {
-    const errors = await validate(updateLogDto);
-    if (errors.length > 0) {
-      throw new BadRequestException(errors);
-    }
-    return this.eventsService.updateLog(logId, req.user.userId, updateLogDto);
+    return {
+      results: await this.eventsService.updateLog(
+        req.user.userId,
+        logId,
+        updateLogDto,
+      ),
+    };
   }
 
   @Delete('/logs/:logId')
@@ -104,6 +101,8 @@ export class EventsController {
     @Request() req,
     @Param('logId', ParseUUIDPipe) logId: string,
   ) {
-    return this.eventsService.deleteLog(logId, req.user.userId);
+    return {
+      results: await this.eventsService.deleteLog(req.user.userId, logId),
+    };
   }
 }

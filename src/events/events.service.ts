@@ -8,11 +8,10 @@ import {
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import { eq, and } from 'drizzle-orm';
-import { CreateEventDto } from './dto/create-event.dto';
+import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
 import * as schema from './schema';
 import { format } from 'date-fns';
-import { UpdateLogDto } from './dto/update-log.dto';
-import { CreateLogDto } from './dto/create-log.dto';
+import { CreateLogDto, UpdateLogDto } from './dto/log.dto';
 import { TasksService } from '../tasks/tasks.service';
 
 @Injectable()
@@ -54,16 +53,13 @@ export class EventsService {
     });
   }
 
-  async createEvent(createEventDto: CreateEventDto) {
+  async createEvent(userId: string, createEventDto: CreateEventDto) {
     let task = null;
 
     if (createEventDto.taskId) {
-      task = await this.tasksService.getTask(
-        createEventDto.taskId,
-        createEventDto.userId,
-      );
+      task = await this.tasksService.getTask(createEventDto.taskId, userId);
       if (!task) {
-        throw new NotFoundException('Task not found');
+        throw new NotFoundException('Task not found: ' + createEventDto.taskId);
       }
     }
 
@@ -73,7 +69,7 @@ export class EventsService {
         title: createEventDto.title,
         day: createEventDto.day || format(new Date(), 'yyyy-MM-dd'),
         taskId: createEventDto.taskId,
-        userId: createEventDto.userId,
+        userId: userId,
       })
       .returning();
     const log = await this.database
@@ -82,7 +78,7 @@ export class EventsService {
         title: createEventDto.logTitle || createEventDto.title,
         duration: createEventDto.duration,
         eventId: event[0].id,
-        userId: createEventDto.userId,
+        userId: userId,
       })
       .returning();
 
@@ -90,9 +86,9 @@ export class EventsService {
   }
 
   async updateEvent(
-    eventId: string,
     userId: string,
-    updateEventDto: CreateEventDto,
+    eventId: string,
+    updateEventDto: UpdateEventDto,
   ) {
     return this.database
       .update(schema.PmEvent)
@@ -116,19 +112,19 @@ export class EventsService {
       .returning();
   }
 
-  async createLog(createLogDto: CreateLogDto) {
+  async createLog(userId: string, createLogDto: CreateLogDto) {
     return this.database
       .insert(schema.Log)
       .values({
+        userId: userId,
         title: createLogDto.title,
         duration: createLogDto.duration,
         eventId: createLogDto.eventId,
-        userId: createLogDto.userId,
       })
       .returning();
   }
 
-  async updateLog(logId: string, userId: string, updateLogDto: UpdateLogDto) {
+  async updateLog(userId: string, logId: string, updateLogDto: UpdateLogDto) {
     return this.database
       .update(schema.Log)
       .set({
@@ -139,7 +135,7 @@ export class EventsService {
       .returning();
   }
 
-  async deleteLog(logId: string, userId: string) {
+  async deleteLog(userId: string, logId: string) {
     return this.database
       .delete(schema.Log)
       .where(and(eq(schema.Log.id, logId), eq(schema.Log.userId, userId)))

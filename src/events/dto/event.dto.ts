@@ -1,3 +1,4 @@
+import { PartialType } from '@nestjs/mapped-types';
 import {
   IsNotEmpty,
   IsOptional,
@@ -6,7 +7,7 @@ import {
   IsNumber,
 } from 'class-validator';
 
-export class EventDto {
+export class CreateEventDto {
   @IsNotEmpty()
   title: string;
   @IsOptional()
@@ -15,15 +16,11 @@ export class EventDto {
   @IsOptional()
   @IsUUID()
   taskId: string;
-  @IsNotEmpty()
+  @IsOptional()
   logTitle: string;
   @IsNotEmpty()
   @IsNumber()
   duration: number;
 }
 
-export class CreateEventDto extends EventDto {
-  @IsNotEmpty()
-  @IsUUID()
-  userId: string;
-}
+export class UpdateEventDto extends PartialType(CreateEventDto) {}
