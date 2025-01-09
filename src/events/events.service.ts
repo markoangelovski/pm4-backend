@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
 import * as schema from './schema';
 import { format } from 'date-fns';
@@ -32,6 +32,7 @@ export class EventsService {
 
     return this.database.query.PmEvent.findMany({
       where: and(...whereClause),
+      orderBy: sql`${schema.PmEvent.createdAt} asc`,
       columns: {
         userId: false,
         taskId: false,
@@ -68,7 +69,7 @@ export class EventsService {
       .values({
         title: createEventDto.title,
         day: createEventDto.day || format(new Date(), 'yyyy-MM-dd'),
-        taskId: createEventDto.taskId,
+        taskId: createEventDto.taskId || null,
         userId: userId,
       })
       .returning();
@@ -95,7 +96,7 @@ export class EventsService {
       .set({
         title: updateEventDto.title,
         day: updateEventDto.day,
-        taskId: updateEventDto.taskId,
+        taskId: updateEventDto.taskId || null,
       })
       .where(
         and(eq(schema.PmEvent.id, eventId), eq(schema.PmEvent.userId, userId)),
