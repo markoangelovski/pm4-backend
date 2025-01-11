@@ -43,7 +43,6 @@ export class EventsController {
     @Query('start', new ParseDayFormatPipe()) start?: Date,
     @Query('end', new ParseDayFormatPipe()) end?: Date,
   ) {
-    console.log('start, end: ', start, end);
     return {
       results: await this.eventsService.getDays(req.user.userId, start, end),
     };
