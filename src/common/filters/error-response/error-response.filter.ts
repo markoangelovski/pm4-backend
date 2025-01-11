@@ -46,6 +46,8 @@ export class CustomExceptionFilter implements ExceptionFilter {
       ctx.getRequest().method,
       ctx.getRequest().url,
       '\n',
+      ctx.getRequest().body,
+      '\n',
       exception,
     );
 

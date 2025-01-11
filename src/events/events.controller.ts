@@ -19,6 +19,7 @@ import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateLogDto, UpdateLogDto } from './dto/log.dto';
 import { ParseDayFormatPipe } from 'src/common/pipes';
+import { makeDate } from 'src/common/utils';
 
 @Controller('/events')
 @UseGuards(JwtAuthGuard)
@@ -28,7 +29,7 @@ export class EventsController {
   @Get('/')
   async getEvents(
     @Request() req,
-    @Query('day', new ParseDayFormatPipe()) day?: string,
+    @Query('day', new ParseDayFormatPipe()) day?: Date,
     @Query('taskId', new ParseUUIDPipe({ optional: true })) taskId?: string,
   ) {
     return {
@@ -36,8 +37,23 @@ export class EventsController {
     };
   }
 
+  @Get('/days')
+  async getDays(
+    @Request() req,
+    @Query('start', new ParseDayFormatPipe()) start?: Date,
+    @Query('end', new ParseDayFormatPipe()) end?: Date,
+  ) {
+    console.log('start, end: ', start, end);
+    return {
+      results: await this.eventsService.getDays(req.user.userId, start, end),
+    };
+  }
+
   @Post('/')
   async createEvent(@Request() req, @Body() createEventDto: CreateEventDto) {
+    if (!createEventDto.day)
+      createEventDto.day = makeDate(new Date().toISOString());
+
     return {
       results: await this.eventsService.createEvent(
         req.user.userId,

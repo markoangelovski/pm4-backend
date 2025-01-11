@@ -1,13 +1,7 @@
-import {
-  Injectable,
-  Inject,
-  HttpException,
-  HttpStatus,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, gte, lte, asc } from 'drizzle-orm';
 import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
 import * as schema from './schema';
 import { format } from 'date-fns';
@@ -21,7 +15,7 @@ export class EventsService {
     private readonly database: NodePgDatabase<typeof import('./schema')>,
     private readonly tasksService: TasksService,
   ) {}
-  async getEvents(userId: string, day?: string, taskId?: string) {
+  async getEvents(userId: string, day?: Date, taskId?: string) {
     const whereClause = [eq(schema.PmEvent.userId, userId)];
 
     if (taskId) {
@@ -32,7 +26,7 @@ export class EventsService {
 
     return this.database.query.PmEvent.findMany({
       where: and(...whereClause),
-      orderBy: sql`${schema.PmEvent.createdAt} asc`,
+      orderBy: [asc(schema.PmEvent.createdAt)],
       columns: {
         userId: false,
         taskId: false,
@@ -54,6 +48,24 @@ export class EventsService {
     });
   }
 
+  async getDays(userId: string, start?: Date, end?: Date) {
+    const whereClause = [eq(schema.PmEvent.userId, userId)];
+
+    if (start) {
+      whereClause.push(gte(schema.PmEvent.day, start));
+    }
+
+    if (end) {
+      whereClause.push(lte(schema.PmEvent.day, end));
+    }
+
+    return this.database
+      .selectDistinctOn([schema.PmEvent.day], { day: schema.PmEvent.day })
+      .from(schema.PmEvent)
+      .where(and(...whereClause))
+      .orderBy(schema.PmEvent.day);
+  }
+
   async createEvent(userId: string, createEventDto: CreateEventDto) {
     let task = null;
 
@@ -68,7 +80,7 @@ export class EventsService {
       .insert(schema.PmEvent)
       .values({
         title: createEventDto.title,
-        day: createEventDto.day || format(new Date(), 'yyyy-MM-dd'),
+        day: createEventDto.day,
         taskId: createEventDto.taskId || null,
         userId: userId,
       })
@@ -95,7 +107,7 @@ export class EventsService {
       .update(schema.PmEvent)
       .set({
         title: updateEventDto.title,
-        day: updateEventDto.day,
+        day: updateEventDto.day ? new Date(updateEventDto.day) : null,
         taskId: updateEventDto.taskId || null,
       })
       .where(

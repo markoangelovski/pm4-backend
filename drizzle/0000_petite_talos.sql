@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS "events" (
 	"user_id" uuid NOT NULL,
 	"task_id" uuid,
 	"title" text NOT NULL,
-	"day" text NOT NULL,
+	"day" timestamp DEFAULT now() NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"modified_at" timestamp DEFAULT now()
 );
@@ -75,7 +75,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "events" ADD CONSTRAINT "events_task_id_tasks_id_fk" FOREIGN KEY ("task_id") REFERENCES "public"."tasks"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "events" ADD CONSTRAINT "events_task_id_tasks_id_fk" FOREIGN KEY ("task_id") REFERENCES "public"."tasks"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

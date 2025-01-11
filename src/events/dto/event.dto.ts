@@ -1,8 +1,8 @@
 import { PartialType } from '@nestjs/mapped-types';
+import { Transform } from 'class-transformer';
 import {
   IsNotEmpty,
   IsOptional,
-  IsDateString,
   IsNumber,
   registerDecorator,
   ValidationOptions,
@@ -10,6 +10,7 @@ import {
   ValidatorConstraintInterface,
 } from 'class-validator';
 import { isUUID } from 'class-validator';
+import { makeDate } from 'src/common/utils';
 
 // Custom Validator for taskId
 @ValidatorConstraint({ async: false })
@@ -41,9 +42,8 @@ export class CreateEventDto {
   title: string;
 
   @IsOptional()
-  @IsDateString()
-  day: string;
-
+  @Transform(({ value }) => makeDate(value))
+  day: Date;
   @IsOptional()
   @IsUuidOrEmpty({ message: 'taskId must be a UUID or an empty string' })
   taskId: string;

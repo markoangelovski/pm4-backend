@@ -1,5 +1,5 @@
 {
-  "id": "a8f16d71-4bf4-460c-ac81-3cab118117aa",
+  "id": "63a2fe6d-c375-40f4-a1ea-6ba3c663a70f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -121,9 +121,10 @@
         },
         "day": {
           "name": "day",
-          "type": "text",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         },
         "created_at": {
           "name": "created_at",
@@ -165,7 +166,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },

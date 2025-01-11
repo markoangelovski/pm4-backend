@@ -1,5 +1,6 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
-import { format } from 'date-fns';
+import { endOfMonth, startOfMonth } from 'date-fns';
+import { makeDate } from '../utils';
 
 @Injectable()
 export class ParseLimitOffsetPipe implements PipeTransform {
@@ -16,8 +17,13 @@ export class ParseLimitOffsetPipe implements PipeTransform {
 
 @Injectable()
 export class ParseDayFormatPipe implements PipeTransform {
-  transform(value: string, metadata: ArgumentMetadata): string {
-    if (!value) return format(new Date(), 'yyyy-MM-dd');
-    return format(new Date(value), 'yyyy-MM-dd');
+  transform(value: string, metadata: ArgumentMetadata): Date {
+    if (metadata.data === 'start' && !value)
+      return makeDate(startOfMonth(new Date()).toISOString());
+    if (metadata.data === 'end' && !value)
+      return makeDate(endOfMonth(new Date()).toISOString());
+
+    if (!value) return makeDate(new Date().toISOString());
+    return makeDate(value);
   }
 }
