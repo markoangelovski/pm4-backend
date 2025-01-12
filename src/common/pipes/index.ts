@@ -1,6 +1,6 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import { endOfMonth, startOfMonth } from 'date-fns';
-import { makeDate } from '../utils';
+import { getHourWithFraction, makeDate } from '../utils';
 
 @Injectable()
 export class ParseLimitOffsetPipe implements PipeTransform {
@@ -25,5 +25,13 @@ export class ParseDayFormatPipe implements PipeTransform {
 
     if (!value) return makeDate(new Date().toISOString());
     return makeDate(value);
+  }
+}
+
+@Injectable()
+export class ParseStartWorkingHoursPipe implements PipeTransform {
+  transform(value: string, metadata: ArgumentMetadata): number {
+    if (!value || isNaN(+value)) return getHourWithFraction(new Date());
+    return +value;
   }
 }

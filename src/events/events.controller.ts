@@ -5,26 +5,28 @@ import {
   Body,
   UseGuards,
   Request,
-  BadRequestException,
   Param,
   Patch,
   Delete,
   Query,
-  Put,
   ParseUUIDPipe,
+  ParseFloatPipe,
 } from '@nestjs/common';
-import { validate } from 'class-validator';
 import { EventsService } from './events.service';
 import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateLogDto, UpdateLogDto } from './dto/log.dto';
 import { ParseDayFormatPipe } from 'src/common/pipes';
 import { makeDate } from 'src/common/utils';
+import { DaysService } from 'src/days/days.service';
 
 @Controller('/events')
 @UseGuards(JwtAuthGuard)
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(
+    private readonly eventsService: EventsService,
+    private readonly daysService: DaysService,
+  ) {}
 
   @Get('/')
   async getEvents(
@@ -34,17 +36,6 @@ export class EventsController {
   ) {
     return {
       results: await this.eventsService.getEvents(req.user.userId, day, taskId),
-    };
-  }
-
-  @Get('/days')
-  async getDays(
-    @Request() req,
-    @Query('start', new ParseDayFormatPipe()) start?: Date,
-    @Query('end', new ParseDayFormatPipe()) end?: Date,
-  ) {
-    return {
-      results: await this.eventsService.getDays(req.user.userId, start, end),
     };
   }
 
@@ -118,6 +109,38 @@ export class EventsController {
   ) {
     return {
       results: await this.eventsService.deleteLog(req.user.userId, logId),
+    };
+  }
+
+  @Get('/days')
+  async getDays(
+    @Request() req,
+    @Query('start', new ParseDayFormatPipe()) start?: Date,
+    @Query('end', new ParseDayFormatPipe()) end?: Date,
+  ) {
+    return {
+      results: await this.daysService.getDays(req.user.userId, start, end),
+    };
+  }
+
+  @Get('/days/single')
+  async getDay(
+    @Request() req,
+    @Query('day', new ParseDayFormatPipe()) day?: Date,
+  ) {
+    return {
+      results: await this.daysService.getDay(req.user.userId, day),
+    };
+  }
+
+  @Patch('/days/:dayId')
+  async updateDay(
+    @Request() req,
+    @Param('dayId', ParseUUIDPipe) dayId: string,
+    @Query('start', ParseFloatPipe) start: number,
+  ) {
+    return {
+      results: await this.daysService.updateDay(req.user.userId, dayId, start),
     };
   }
 }

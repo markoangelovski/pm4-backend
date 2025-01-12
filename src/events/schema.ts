@@ -2,6 +2,7 @@ import { pgTable, uuid, timestamp, text, real } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { User } from '../users/schema';
 import { Task } from '../tasks/schema';
+import { Day } from '../days/schema';
 
 export const PmEvent = pgTable('events', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -11,6 +12,7 @@ export const PmEvent = pgTable('events', {
   taskId: uuid('task_id').references(() => Task.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   day: timestamp('day').notNull().defaultNow(),
+  dayId: uuid('day_id').references(() => Day.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow(),
   modifiedAt: timestamp('modified_at')
     .defaultNow()
@@ -20,6 +22,7 @@ export const PmEvent = pgTable('events', {
 export const eventRelations = relations(PmEvent, ({ one, many }) => ({
   user: one(User, { fields: [PmEvent.userId], references: [User.id] }),
   task: one(Task, { fields: [PmEvent.taskId], references: [Task.id] }),
+  day: one(Day, { fields: [PmEvent.dayId], references: [Day.id] }),
   logs: many(Log),
 }));
 

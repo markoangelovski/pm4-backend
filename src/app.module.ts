@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
 import { EventsModule } from './events/events.module';
+import { DaysModule } from './days/days.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { EventsModule } from './events/events.module';
     ProjectsModule,
     TasksModule,
     EventsModule,
+    DaysModule,
   ],
   controllers: [AppController],
   providers: [AppService],

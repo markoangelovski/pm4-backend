@@ -1,12 +1,13 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
-import { eq, and, sql, gte, lte, asc } from 'drizzle-orm';
+import { eq, and, gte, lte, asc } from 'drizzle-orm';
 import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
 import * as schema from './schema';
-import { format } from 'date-fns';
 import { CreateLogDto, UpdateLogDto } from './dto/log.dto';
 import { TasksService } from '../tasks/tasks.service';
+import { DaysService } from '../days/days.service';
+import { getHourWithFraction, makeDate } from '../common/utils';
 
 @Injectable()
 export class EventsService {
@@ -14,6 +15,7 @@ export class EventsService {
     @Inject(DATABASE_CONNECTION)
     private readonly database: NodePgDatabase<typeof import('./schema')>,
     private readonly tasksService: TasksService,
+    private readonly daysService: DaysService,
   ) {}
   async getEvents(userId: string, day?: Date, taskId?: string) {
     const whereClause = [eq(schema.PmEvent.userId, userId)];
@@ -48,24 +50,6 @@ export class EventsService {
     });
   }
 
-  async getDays(userId: string, start?: Date, end?: Date) {
-    const whereClause = [eq(schema.PmEvent.userId, userId)];
-
-    if (start) {
-      whereClause.push(gte(schema.PmEvent.day, start));
-    }
-
-    if (end) {
-      whereClause.push(lte(schema.PmEvent.day, end));
-    }
-
-    return this.database
-      .selectDistinctOn([schema.PmEvent.day], { day: schema.PmEvent.day })
-      .from(schema.PmEvent)
-      .where(and(...whereClause))
-      .orderBy(schema.PmEvent.day);
-  }
-
   async createEvent(userId: string, createEventDto: CreateEventDto) {
     let task = null;
 
@@ -76,11 +60,14 @@ export class EventsService {
       }
     }
 
+    const day = await this.daysService.getDay(userId, createEventDto.day);
+
     const event = await this.database
       .insert(schema.PmEvent)
       .values({
         title: createEventDto.title,
         day: createEventDto.day,
+        dayId: day.id,
         taskId: createEventDto.taskId || null,
         userId: userId,
       })
@@ -103,12 +90,17 @@ export class EventsService {
     eventId: string,
     updateEventDto: UpdateEventDto,
   ) {
+    let day = null;
+
+    if (updateEventDto.day) {
+      day = await this.daysService.getDay(userId, updateEventDto.day);
+    }
+
     return this.database
       .update(schema.PmEvent)
       .set({
-        title: updateEventDto.title,
-        day: updateEventDto.day ? new Date(updateEventDto.day) : null,
-        taskId: updateEventDto.taskId || null,
+        ...updateEventDto,
+        dayId: day?.id,
       })
       .where(
         and(eq(schema.PmEvent.id, eventId), eq(schema.PmEvent.userId, userId)),

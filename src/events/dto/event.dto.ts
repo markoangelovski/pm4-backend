@@ -44,8 +44,10 @@ export class CreateEventDto {
   @IsOptional()
   @Transform(({ value }) => makeDate(value))
   day: Date;
+
   @IsOptional()
   @IsUuidOrEmpty({ message: 'taskId must be a UUID or an empty string' })
+  @Transform(({ value }) => (value ? value : null))
   taskId: string;
 
   @IsOptional()

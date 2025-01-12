@@ -7,6 +7,7 @@ import * as userSchema from '../users/schema';
 import * as projectSchema from '../projects/schema';
 import * as taskSchema from '../tasks/schema';
 import * as eventSchema from '../events/schema';
+import * as daySchema from '../days/schema';
 
 @Module({
   providers: [
@@ -22,6 +23,7 @@ import * as eventSchema from '../events/schema';
             ...projectSchema,
             ...taskSchema,
             ...eventSchema,
+            ...daySchema,
           },
         });
       },
