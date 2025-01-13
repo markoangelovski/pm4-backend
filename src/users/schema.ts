@@ -1,9 +1,9 @@
-import { pgTable, serial, text, uuid, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, text, uuid, timestamp } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { Project } from '../projects/schema';
 import { Task } from '../tasks/schema';
-import { Log, PmEvent } from 'src/events/schema';
-import { Day } from 'src/days/schema';
+import { Log, PmEvent } from '../events/schema';
+import { Day } from '../days/schema';
 
 export const User = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),

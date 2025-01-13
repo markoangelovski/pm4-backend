@@ -2,7 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import * as schema from './schema';
-import { and, eq, count, Update } from 'drizzle-orm';
+import { and, eq, count } from 'drizzle-orm';
 import { UpdateProjectDto } from './dto/project.dto';
 
 @Injectable()

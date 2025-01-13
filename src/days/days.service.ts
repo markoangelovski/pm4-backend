@@ -3,6 +3,8 @@ import { and, asc, eq, gte, lte } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from 'src/database/database-connection';
 import * as schema from './schema';
+import * as eventSchema from '../events/schema';
+
 import { getHourWithFraction, makeDate } from 'src/common/utils';
 
 @Injectable()
@@ -29,6 +31,7 @@ export class DaysService {
           columns: {
             userId: false,
           },
+          orderBy: [asc(eventSchema.PmEvent.createdAt)],
           with: {
             logs: {
               columns: {
@@ -84,12 +87,15 @@ export class DaysService {
       .returning();
   }
 
-  getStats(userId: string) {
+  getStats(userId: string, start: Date, end: Date) {
     return this.database.query.Day.findMany({
-      where: and(eq(schema.Day.userId, userId)),
-      orderBy: [asc(schema.Day.createdAt)],
+      where: and(
+        eq(schema.Day.userId, userId),
+        gte(schema.Day.day, start),
+        lte(schema.Day.day, end),
+      ),
+      orderBy: [asc(schema.Day.day)],
       columns: {
-        start: true,
         day: true,
       },
       with: {
@@ -100,6 +106,7 @@ export class DaysService {
           with: {
             task: {
               columns: {
+                id: true,
                 title: true,
                 jiraLink: true,
               },

@@ -9,6 +9,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
 import { EventsModule } from './events/events.module';
 import { DaysModule } from './days/days.module';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { DaysModule } from './days/days.module';
     TasksModule,
     EventsModule,
     DaysModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

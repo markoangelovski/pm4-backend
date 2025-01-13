@@ -6,7 +6,6 @@ import {
   Request,
   Get,
   Query,
-  BadRequestException,
   Param,
   Patch,
   Delete,
