@@ -28,7 +28,7 @@ export class EventsService {
 
     return this.database.query.PmEvent.findMany({
       where: and(...whereClause),
-      orderBy: [asc(schema.PmEvent.createdAt)],
+      orderBy: [asc(schema.PmEvent.day)],
       columns: {
         userId: false,
         taskId: false,
