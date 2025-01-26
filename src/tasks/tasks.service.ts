@@ -2,8 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import * as schema from './schema';
-import { and, eq, or, ilike, count } from 'drizzle-orm';
+import { and, eq, or, ilike, count, asc } from 'drizzle-orm';
 import { UpdateTaskDto } from './dto/task.dto';
+import { title } from 'process';
 
 @Injectable()
 export class TasksService {
@@ -76,10 +77,16 @@ export class TasksService {
     }
     return this.database.query.Task.findMany({
       where: and(...whereClause),
+      orderBy: [asc(schema.Task.title)],
       limit,
       offset,
       columns: {
         userId: false,
+      },
+      with: {
+        project: {
+          columns: { title: true },
+        },
       },
     });
   }
@@ -92,9 +99,7 @@ export class TasksService {
       },
       with: {
         project: {
-          columns: {
-            title: true,
-          },
+          columns: { title: true },
         },
       },
     });

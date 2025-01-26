@@ -2,7 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import * as schema from './schema';
-import { and, eq, count } from 'drizzle-orm';
+import { and, eq, count, asc } from 'drizzle-orm';
 import { UpdateProjectDto } from './dto/project.dto';
 
 @Injectable()
@@ -22,6 +22,7 @@ export class ProjectsService {
   async getProjects(userId: string, limit: number, offset: number) {
     return this.database.query.Project.findMany({
       where: eq(schema.Project.userId, userId),
+      orderBy: [asc(schema.Project.title)],
       limit,
       offset,
       columns: {
